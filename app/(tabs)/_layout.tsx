@@ -1,6 +1,7 @@
 import { Tabs } from 'expo-router';
 import { Box, LayoutDashboard, LogOut, MessageSquare } from 'lucide-react-native';
 import { Pressable } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAuth } from '../../src/auth/auth-context';
 
@@ -8,12 +9,18 @@ const ACTIVE = '#38bdf8';
 const INACTIVE = '#7c8aa5';
 
 /**
- * A altura da tab bar NÃO é fixada aqui de propósito: o React Navigation
- * calcula `base + safeAreaInsets.bottom`. Fixar `height` ignora o inset do
- * iPhone (home indicator) e corta os rótulos.
+ * Medido no DOM (393x852):
+ *   barra 68 - 1 (borda) - 12 (padding) = 55 no tablist
+ *   o <a> de cada aba tem padding 5+5 -> 45 internos
+ *   ícone 28 + rótulo 13 = 41, com folga
+ * Somamos o safe area (home indicator do iPhone) por fora.
  */
+const BAR_HEIGHT = 68;
+const BAR_PADDING = 6;
+
 export default function TabsLayout() {
   const { signOut } = useAuth();
+  const insets = useSafeAreaInsets();
 
   return (
     <Tabs
@@ -25,10 +32,14 @@ export default function TabsLayout() {
         tabBarStyle: {
           backgroundColor: '#111c2e',
           borderTopColor: '#1e2d45',
+          height: BAR_HEIGHT + insets.bottom,
+          paddingTop: BAR_PADDING,
+          paddingBottom: insets.bottom > 0 ? insets.bottom : BAR_PADDING,
         },
         tabBarActiveTintColor: ACTIVE,
         tabBarInactiveTintColor: INACTIVE,
-        tabBarLabelStyle: { fontSize: 11 },
+        tabBarLabelStyle: { fontSize: 11, lineHeight: 13 },
+        tabBarIconStyle: { marginBottom: 0 },
         headerRight: () => (
           <Pressable
             onPress={() => void signOut()}
