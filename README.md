@@ -85,3 +85,8 @@ as requisições. No boot o app valida o token em `/api/v1/me`.
 - O SSE reconecta sozinho após 4s quando a conexão cai (comum em rede móvel).
 - O gráfico é SVG puro (`react-native-svg`), sem biblioteca de charts — funciona igual
   em Android, iOS e tablet.
+- As respostas do agente são renderizadas em **markdown** (`react-native-marked`), com
+  tabelas em scroll horizontal. Usa o hook `useMarkdown` em vez do componente `<Markdown>`
+  porque este renderiza uma FlatList, que quebraria o scroll aninhado.
+- Os tokens do stream são agrupados a cada 120ms antes de ir para o estado: sem isso o
+  markdown seria re-parseado a cada token.

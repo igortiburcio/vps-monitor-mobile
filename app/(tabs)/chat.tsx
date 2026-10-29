@@ -45,11 +45,20 @@ export default function ChatScreen() {
   const [error, setError] = useState<string | null>(null);
 
   const scrollRef = useRef<ComponentRef<typeof ScrollView>>(null);
+  /** buffer de tokens: evita re-parsear markdown a cada token */
+  const pendingRef = useRef('');
+  const flushTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 60);
     return () => clearTimeout(timer);
   }, [messages, tools]);
+
+  useEffect(() => {
+    return () => {
+      if (flushTimerRef.current) clearInterval(flushTimerRef.current);
+    };
+  }, []);
 
   function appendToLastAssistant(text: string): void {
     setMessages((previous) => {
@@ -60,6 +69,15 @@ export default function ChatScreen() {
       next[next.length - 1] = { ...last, content: last.content + text };
       return next;
     });
+  }
+
+  /** Descarrega o buffer de tokens no estado. */
+  function flushPending(): void {
+    const chunk = pendingRef.current;
+    if (!chunk) return;
+
+    pendingRef.current = '';
+    appendToLastAssistant(chunk);
   }
 
   async function send(question: string): Promise<void> {
@@ -76,11 +94,14 @@ export default function ChatScreen() {
     setError(null);
     setTools([]);
     setStreaming(true);
+    pendingRef.current = '';
     setMessages((previous) => [
       ...previous,
       { id: `u-${Date.now()}`, role: 'user', content: text },
       { id: `a-${Date.now()}`, role: 'assistant', content: '' },
     ]);
+
+    flushTimerRef.current = setInterval(flushPending, 120);
 
     try {
       for await (const message of streamSse('/api/v1/ai/chat', {
@@ -98,7 +119,7 @@ export default function ChatScreen() {
             break;
 
           case 'token':
-            if (typeof payload.text === 'string') appendToLastAssistant(payload.text);
+            if (typeof payload.text === 'string') pendingRef.current += payload.text;
             break;
 
           case 'tool_start':
@@ -131,6 +152,12 @@ export default function ChatScreen() {
     } catch (streamError) {
       setError(streamError instanceof Error ? streamError.message : 'Falha na conexão');
     } finally {
+      if (flushTimerRef.current) {
+        clearInterval(flushTimerRef.current);
+        flushTimerRef.current = null;
+      }
+
+      flushPending();
       setStreaming(false);
     }
   }

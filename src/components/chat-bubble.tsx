@@ -1,5 +1,7 @@
 import { Text, View } from 'react-native';
 
+import { MarkdownText } from './markdown';
+
 interface ChatBubbleProps {
   role: 'user' | 'assistant';
   content: string;
@@ -17,10 +19,15 @@ export function ChatBubble({ role, content, streaming }: ChatBubbleProps) {
           isUser ? 'rounded-br-sm bg-accent' : 'rounded-bl-sm border border-border bg-card'
         }`}
       >
-        <Text className={`text-sm leading-5 ${isUser ? 'text-[#04121f]' : 'text-slate-100'}`}>
-          {content}
-          {streaming ? <Text className="text-accent">▋</Text> : null}
-        </Text>
+        {isUser ? (
+          <Text className="text-sm leading-5 text-[#04121f]">{content}</Text>
+        ) : content ? (
+          <MarkdownText value={content} />
+        ) : (
+          <Text className="text-sm text-muted">pensando…</Text>
+        )}
+
+        {streaming && content ? <Text className="mt-0.5 text-sm text-accent">▋</Text> : null}
       </View>
     </View>
   );
