@@ -1,12 +1,17 @@
 import { Tabs } from 'expo-router';
-import { Pressable, Text } from 'react-native';
+import { Box, LayoutDashboard, LogOut, MessageSquare } from 'lucide-react-native';
+import { Pressable } from 'react-native';
 
 import { useAuth } from '../../src/auth/auth-context';
 
-function TabIcon({ symbol, focused }: { symbol: string; focused: boolean }) {
-  return <Text style={{ fontSize: 18, opacity: focused ? 1 : 0.45 }}>{symbol}</Text>;
-}
+const ACTIVE = '#38bdf8';
+const INACTIVE = '#7c8aa5';
 
+/**
+ * A altura da tab bar NÃO é fixada aqui de propósito: o React Navigation
+ * calcula `base + safeAreaInsets.bottom`. Fixar `height` ignora o inset do
+ * iPhone (home indicator) e corta os rótulos.
+ */
 export default function TabsLayout() {
   const { signOut } = useAuth();
 
@@ -20,16 +25,19 @@ export default function TabsLayout() {
         tabBarStyle: {
           backgroundColor: '#111c2e',
           borderTopColor: '#1e2d45',
-          height: 60,
-          paddingBottom: 6,
-          paddingTop: 6,
         },
-        tabBarActiveTintColor: '#38bdf8',
-        tabBarInactiveTintColor: '#7c8aa5',
+        tabBarActiveTintColor: ACTIVE,
+        tabBarInactiveTintColor: INACTIVE,
         tabBarLabelStyle: { fontSize: 11 },
         headerRight: () => (
-          <Pressable onPress={() => void signOut()} className="mr-4 active:opacity-60">
-            <Text className="text-xs text-muted">Sair</Text>
+          <Pressable
+            onPress={() => void signOut()}
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel="Sair"
+            className="mr-4 active:opacity-60"
+          >
+            <LogOut size={20} color={INACTIVE} strokeWidth={1.75} />
           </Pressable>
         ),
       }}
@@ -38,21 +46,21 @@ export default function TabsLayout() {
         name="index"
         options={{
           title: 'Dashboard',
-          tabBarIcon: ({ focused }) => <TabIcon symbol="📊" focused={focused} />,
+          tabBarIcon: ({ color }) => <LayoutDashboard size={22} color={color} strokeWidth={1.75} />,
         }}
       />
       <Tabs.Screen
         name="containers"
         options={{
           title: 'Containers',
-          tabBarIcon: ({ focused }) => <TabIcon symbol="📦" focused={focused} />,
+          tabBarIcon: ({ color }) => <Box size={22} color={color} strokeWidth={1.75} />,
         }}
       />
       <Tabs.Screen
         name="chat"
         options={{
           title: 'Chat',
-          tabBarIcon: ({ focused }) => <TabIcon symbol="💬" focused={focused} />,
+          tabBarIcon: ({ color }) => <MessageSquare size={22} color={color} strokeWidth={1.75} />,
         }}
       />
     </Tabs>
