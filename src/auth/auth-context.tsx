@@ -1,4 +1,3 @@
-import * as SecureStore from 'expo-secure-store';
 import {
   createContext,
   type ReactNode,
@@ -11,6 +10,7 @@ import {
 
 import { apiFetch, ApiError, setAuthToken, signIn as signInRequest } from '../api/client';
 import type { MeResponse, SessionUser } from '../api/types';
+import { storage } from '../lib/storage';
 
 const TOKEN_KEY = 'vps-monitor.token';
 
@@ -34,7 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let active = true;
 
     async function restore() {
-      const stored = await SecureStore.getItemAsync(TOKEN_KEY);
+      const stored = await storage.get(TOKEN_KEY);
       if (!stored) {
         if (active) setStatus('unauthenticated');
         return;
@@ -49,7 +49,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setStatus('authenticated');
       } catch (error) {
         if (error instanceof ApiError && error.status === 401) {
-          await SecureStore.deleteItemAsync(TOKEN_KEY);
+          await storage.remove(TOKEN_KEY);
           setAuthToken(null);
         }
         if (active) setStatus('unauthenticated');
@@ -67,14 +67,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { token, user: signedUser } = await signInRequest(email, password);
 
     setAuthToken(token);
-    await SecureStore.setItemAsync(TOKEN_KEY, token);
+    await storage.set(TOKEN_KEY, token);
     setUser(signedUser);
     setStatus('authenticated');
   }, []);
 
   const signOut = useCallback(async () => {
     setAuthToken(null);
-    await SecureStore.deleteItemAsync(TOKEN_KEY);
+    await storage.remove(TOKEN_KEY);
     setUser(null);
     setStatus('unauthenticated');
   }, []);

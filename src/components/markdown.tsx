@@ -1,6 +1,11 @@
 import { memo } from 'react';
-import { Platform, View } from 'react-native';
-import { type MarkedStyles, useMarkdown, type useMarkdownHookOptions } from 'react-native-marked';
+import { Platform, StyleSheet, Text, View, type ViewStyle } from 'react-native';
+import {
+  type MarkedStyles,
+  Renderer,
+  useMarkdown,
+  type useMarkdownHookOptions,
+} from 'react-native-marked';
 
 const MONOSPACE = Platform.select({ ios: 'Menlo', android: 'monospace', default: 'monospace' });
 
@@ -50,13 +55,105 @@ const styles: MarkedStyles = {
 
   list: { marginVertical: 2 },
   li: { fontSize: 14, lineHeight: 20 },
-
-  table: { borderWidth: 1, borderColor: '#1e2d45', borderRadius: 8, marginVertical: 8 },
-  tableRow: { borderBottomWidth: 1, borderBottomColor: '#1e2d45' },
-  tableCell: { paddingVertical: 6, paddingHorizontal: 10 },
-
-  hr: { backgroundColor: '#1e2d45', height: 1, marginVertical: 10 },
 };
+
+/**
+ * Tabela própria.
+ *
+ * O renderer padrão da lib usa largura fixa de 43% da JANELA por coluna
+ * (3 colunas = 130% da tela) e embrulha tudo num ScrollView horizontal
+ * dentro do nosso ScrollView vertical — combinação que quebra a medição
+ * de altura e faz a bolha crescer sem limite.
+ *
+ * Aqui as colunas dividem a largura disponível (`flex: 1`) e o texto quebra.
+ */
+const tableStyles = StyleSheet.create({
+  table: {
+    borderWidth: 1,
+    borderColor: '#1e2d45',
+    borderRadius: 8,
+    overflow: 'hidden',
+    marginVertical: 8,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
+  },
+  headerRow: {
+    backgroundColor: 'rgba(255,255,255,0.05)',
+  },
+  cell: {
+    flex: 1,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRightWidth: 1,
+    borderRightColor: '#1e2d45',
+  },
+  headerText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#ffffff',
+  },
+});
+
+class ChatRenderer extends Renderer {
+  override table(
+    header: React.ReactNode[][],
+    rows: React.ReactNode[][][],
+    tableStyle?: ViewStyle,
+    rowStyle?: ViewStyle,
+    cellStyle?: ViewStyle,
+  ): React.ReactNode {
+    const lastColumn = header.length - 1;
+
+    return (
+      <View key={this.getKey()} style={[tableStyles.table, tableStyle]}>
+        <View style={[tableStyles.row, tableStyles.headerRow, rowStyle]}>
+          {header.map((cell, index) => (
+            <View
+              key={`h-${index}`}
+              style={[
+                tableStyles.cell,
+                index === lastColumn ? { borderRightWidth: 0 } : null,
+                cellStyle,
+              ]}
+            >
+              <Text style={tableStyles.headerText}>{cell}</Text>
+            </View>
+          ))}
+        </View>
+
+        {rows.map((row, rowIndex) => (
+          <View
+            key={`r-${rowIndex}`}
+            style={[
+              tableStyles.row,
+              rowIndex < rows.length - 1
+                ? { borderBottomWidth: 1, borderBottomColor: '#1e2d45' }
+                : null,
+              rowStyle,
+            ]}
+          >
+            {row.map((cell, cellIndex) => (
+              <View
+                key={`c-${cellIndex}`}
+                style={[
+                  tableStyles.cell,
+                  cellIndex === lastColumn ? { borderRightWidth: 0 } : null,
+                  cellStyle,
+                ]}
+              >
+                {cell}
+              </View>
+            ))}
+          </View>
+        ))}
+      </View>
+    );
+  }
+}
+
+const renderer = new ChatRenderer({ selectable: false });
 
 /**
  * Markdown do chat. Usa `useMarkdown` (e não o componente <Markdown>)
@@ -64,9 +161,9 @@ const styles: MarkedStyles = {
  * isso quebraria o scroll.
  */
 function MarkdownTextComponent({ value }: { value: string }) {
-  const elements = useMarkdown(value, { theme, styles, colorScheme: 'dark' });
+  const elements = useMarkdown(value, { theme, styles, renderer, colorScheme: 'dark' });
 
-  return <View>{elements}</View>;
+  return <View style={{ flexShrink: 1 }}>{elements}</View>;
 }
 
 export const MarkdownText = memo(MarkdownTextComponent);

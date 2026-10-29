@@ -12,8 +12,16 @@ interface ChatBubbleProps {
 export function ChatBubble({ role, content, streaming }: ChatBubbleProps) {
   const isUser = role === 'user';
 
+  /**
+   * Durante o stream o texto está incompleto: parsear markdown a cada
+   * atualização gera estruturas inválidas (tabela sem linhas, lista aberta)
+   * e faz o layout oscilar. Renderizamos texto puro e só trocamos para
+   * markdown quando a resposta termina.
+   */
+  const renderAsMarkdown = !isUser && !streaming && content.length > 0;
+
   return (
-    <View className={`mb-3 max-w-[92%] ${isUser ? 'self-end' : 'self-start'}`}>
+    <View className={`mb-3 max-w-[92%] shrink ${isUser ? 'self-end' : 'self-start'}`}>
       <View
         className={`rounded-2xl px-4 py-3 ${
           isUser ? 'rounded-br-sm bg-accent' : 'rounded-bl-sm border border-border bg-card'
@@ -21,8 +29,10 @@ export function ChatBubble({ role, content, streaming }: ChatBubbleProps) {
       >
         {isUser ? (
           <Text className="text-sm leading-5 text-[#04121f]">{content}</Text>
-        ) : content ? (
+        ) : renderAsMarkdown ? (
           <MarkdownText value={content} />
+        ) : content ? (
+          <Text className="text-sm leading-5 text-slate-100">{content}</Text>
         ) : (
           <Text className="text-sm text-muted">pensando…</Text>
         )}

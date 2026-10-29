@@ -1,0 +1,353 @@
+__d(
+  function (g, r, i, a, m, _e, d) {
+    'use strict';
+    function e(e) {
+      return e && e.__esModule ? e : { default: e };
+    }
+    (Object.defineProperty(_e, '__esModule', { value: !0 }),
+      Object.defineProperty(_e, 'default', {
+        enumerable: !0,
+        get: function () {
+          return w;
+        },
+      }));
+    var t = e(r(d[0])),
+      s = e(r(d[1])),
+      l = e(r(d[2])),
+      n = e(r(d[3])),
+      c = r(d[4]),
+      o = r(d[5]),
+      x = r(d[6]),
+      u = r(d[7]),
+      f = r(d[8]),
+      h = r(d[9]),
+      j = r(d[10]);
+    function p({ label: e, value: t, hint: s, tone: n = 'default' }) {
+      const c = 'danger' === n ? 'text-danger' : 'warn' === n ? 'text-warn' : 'text-white';
+      return (0, j.jsxs)(o.Card, {
+        className: 'flex-1 min-w-[150px]',
+        children: [
+          (0, j.jsx)(o.Label, { children: e }),
+          (0, j.jsx)(l.default, { className: `mt-1 text-2xl font-semibold ${c}`, children: t }),
+          s
+            ? (0, j.jsx)(l.default, { className: 'mt-0.5 text-[11px] text-muted', children: s })
+            : null,
+        ],
+      });
+    }
+    function b(e) {
+      return null === e ? 'default' : e >= 90 ? 'danger' : e >= 75 ? 'warn' : 'default';
+    }
+    function N({ host: e }) {
+      return e.available
+        ? (0, j.jsxs)(n.default, {
+            className: 'flex-row flex-wrap gap-3',
+            children: [
+              (0, j.jsx)(p, {
+                label: 'CPU',
+                value: (0, h.formatPercent)(e.cpuPct),
+                hint: e.cpuPerCore ? `${e.cpuPerCore.length} cores` : void 0,
+                tone: b(e.cpuPct),
+              }),
+              (0, j.jsx)(p, {
+                label: 'Mem\xf3ria',
+                value: (0, h.formatPercent)(e.memPct),
+                hint: `${(0, h.formatBytes)(e.memUsed)} de ${(0, h.formatBytes)(e.memTotal)}`,
+                tone: b(e.memPct),
+              }),
+              (0, j.jsx)(p, {
+                label: 'Disco',
+                value: (0, h.formatPercent)(e.diskPct),
+                hint: `${(0, h.formatBytes)(e.diskUsed)} de ${(0, h.formatBytes)(e.diskTotal)}`,
+                tone: b(e.diskPct),
+              }),
+              (0, j.jsx)(p, {
+                label: 'Load',
+                value: e.load1?.toFixed(2) ?? '\u2014',
+                hint: `5m ${e.load5?.toFixed(2) ?? '\u2014'} \xb7 15m ${e.load15?.toFixed(2) ?? '\u2014'}`,
+              }),
+              (0, j.jsx)(p, {
+                label: 'Rede',
+                value: (0, h.formatRate)(e.netRxBps),
+                hint: `\u2191 ${(0, h.formatRate)(e.netTxBps)}`,
+              }),
+              (0, j.jsx)(p, { label: 'Uptime', value: (0, h.formatUptime)(e.uptimeSec) }),
+            ],
+          })
+        : (0, j.jsx)(o.EmptyState, {
+            title: 'M\xe9tricas do host indispon\xedveis',
+            description: 'O container da API n\xe3o tem /proc do host montado.',
+          });
+    }
+    function w() {
+      const { isWide: e } = (0, x.useBreakpoint)(),
+        h = (0, f.useOverview)(),
+        { snapshot: p, connected: b } = (0, u.useLiveMetrics)(!0),
+        w = (0, f.useHistory)('cpu', 1800, 60),
+        y = p ?? h.data,
+        v = (w.data?.points ?? []).map((e) => e.value);
+      if (!y && h.isLoading)
+        return (0, j.jsx)(n.default, {
+          className: 'flex-1 items-center justify-center bg-surface',
+          children: (0, j.jsx)(l.default, {
+            className: 'text-sm text-muted',
+            children: 'Carregando m\xe9tricas\u2026',
+          }),
+        });
+      if (!y)
+        return (0, j.jsx)(n.default, {
+          className: 'flex-1 items-center justify-center bg-surface px-6',
+          children: (0, j.jsx)(o.EmptyState, {
+            title: 'N\xe3o foi poss\xedvel carregar',
+            description: h.error instanceof Error ? h.error.message : 'Tente novamente',
+          }),
+        });
+      const C = y.coolify.applications.filter((e) =>
+        e.status.toLowerCase().includes('healthy'),
+      ).length;
+      return (0, j.jsxs)(s.default, {
+        className: 'flex-1 bg-surface',
+        contentContainerStyle: { padding: 16, gap: 16 },
+        refreshControl: (0, j.jsx)(t.default, {
+          refreshing: h.isRefetching,
+          onRefresh: () => {
+            h.refetch();
+          },
+          tintColor: '#38bdf8',
+        }),
+        children: [
+          (0, j.jsxs)(n.default, {
+            className: 'flex-row items-center justify-between',
+            children: [
+              (0, j.jsxs)(n.default, {
+                children: [
+                  (0, j.jsx)(l.default, {
+                    className: 'text-lg font-semibold text-white',
+                    children: 'Servidor',
+                  }),
+                  (0, j.jsxs)(l.default, {
+                    className: 'text-[11px] text-muted',
+                    children: [
+                      'atualizado',
+                      ' ',
+                      y.collectedAt
+                        ? new Date(y.collectedAt).toLocaleTimeString('pt-BR')
+                        : '\u2014',
+                    ],
+                  }),
+                ],
+              }),
+              (0, j.jsx)(o.StatusBadge, {
+                label: b ? 'ao vivo' : 'reconectando',
+                tone: b ? 'ok' : 'warn',
+              }),
+            ],
+          }),
+          (0, j.jsx)(N, { host: y.host }),
+          (0, j.jsxs)(o.Card, {
+            children: [
+              (0, j.jsxs)(n.default, {
+                className: 'mb-2 flex-row items-center justify-between',
+                children: [
+                  (0, j.jsx)(o.SectionTitle, { children: 'CPU \xb7 \xfaltima hora' }),
+                  (0, j.jsxs)(l.default, {
+                    className: 'text-[11px] text-muted',
+                    children: [w.data?.points.length ?? 0, ' amostras'],
+                  }),
+                ],
+              }),
+              (0, j.jsx)(c.MetricChart, { values: v, max: 100, height: 90 }),
+            ],
+          }),
+          (0, j.jsxs)(n.default, {
+            className: e ? 'flex-row gap-4' : 'gap-4',
+            children: [
+              (0, j.jsxs)(o.Card, {
+                className: 'flex-1',
+                children: [
+                  (0, j.jsx)(o.SectionTitle, { children: 'Containers' }),
+                  (0, j.jsxs)(n.default, {
+                    className: 'flex-row items-end justify-between',
+                    children: [
+                      (0, j.jsx)(o.Value, { children: String(y.containers.length) }),
+                      (0, j.jsxs)(l.default, {
+                        className: 'text-[11px] text-muted',
+                        children: [
+                          y.containers.filter((e) => 'running' === e.state).length,
+                          ' rodando',
+                        ],
+                      }),
+                    ],
+                  }),
+                ],
+              }),
+              (0, j.jsxs)(o.Card, {
+                className: 'flex-1',
+                children: [
+                  (0, j.jsx)(o.SectionTitle, { children: 'Coolify' }),
+                  (0, j.jsxs)(n.default, {
+                    className: 'flex-row items-end justify-between',
+                    children: [
+                      (0, j.jsxs)(o.Value, { children: [C, '/', y.coolify.applications.length] }),
+                      (0, j.jsx)(l.default, {
+                        className: 'text-[11px] text-muted',
+                        children: 'apps saud\xe1veis',
+                      }),
+                    ],
+                  }),
+                ],
+              }),
+            ],
+          }),
+          (0, j.jsxs)(o.Card, {
+            children: [
+              (0, j.jsx)(o.SectionTitle, { children: 'Aplica\xe7\xf5es' }),
+              0 === y.coolify.applications.length
+                ? (0, j.jsx)(l.default, {
+                    className: 'text-xs text-muted',
+                    children: 'Nenhuma aplica\xe7\xe3o retornada pelo Coolify.',
+                  })
+                : (0, j.jsx)(n.default, {
+                    className: 'gap-3',
+                    children: y.coolify.applications.map((e) =>
+                      (0, j.jsxs)(
+                        n.default,
+                        {
+                          className: 'flex-row items-center justify-between gap-3',
+                          children: [
+                            (0, j.jsxs)(n.default, {
+                              className: 'flex-1',
+                              children: [
+                                (0, j.jsx)(l.default, {
+                                  className: 'text-sm font-medium text-white',
+                                  children: e.name,
+                                }),
+                                (0, j.jsx)(l.default, {
+                                  numberOfLines: 1,
+                                  className: 'text-[11px] text-muted',
+                                  children: e.fqdn ?? 'sem dom\xednio',
+                                }),
+                              ],
+                            }),
+                            (0, j.jsx)(o.StatusBadge, {
+                              label: e.status,
+                              tone: (0, o.toneFromStatus)(e.status),
+                            }),
+                          ],
+                        },
+                        e.uuid,
+                      ),
+                    ),
+                  }),
+            ],
+          }),
+          (0, j.jsxs)(o.Card, {
+            children: [
+              (0, j.jsx)(o.SectionTitle, { children: 'Bancos' }),
+              0 === y.coolify.databases.length
+                ? (0, j.jsx)(l.default, {
+                    className: 'text-xs text-muted',
+                    children: 'Nenhum banco retornado.',
+                  })
+                : (0, j.jsx)(n.default, {
+                    className: 'gap-2',
+                    children: y.coolify.databases.map((e) =>
+                      (0, j.jsxs)(
+                        n.default,
+                        {
+                          className: 'flex-row items-center justify-between gap-2',
+                          children: [
+                            (0, j.jsx)(l.default, {
+                              className: 'flex-1 text-sm text-white',
+                              children: e.name,
+                            }),
+                            (0, j.jsx)(l.default, {
+                              className: 'text-[11px] text-muted',
+                              children: e.type.replace('standalone-', ''),
+                            }),
+                            e.isPublic
+                              ? (0, j.jsx)(o.StatusBadge, { label: 'p\xfablico', tone: 'warn' })
+                              : null,
+                          ],
+                        },
+                        e.uuid,
+                      ),
+                    ),
+                  }),
+            ],
+          }),
+        ],
+      });
+    }
+  },
+  778,
+  [132, 133, 188, 109, 851, 841, 842, 848, 849, 850, 289],
+);
+__d(
+  function (g, r, i, a, m, _e, d) {
+    'use strict';
+    function t(t) {
+      return t && t.__esModule ? t : { default: t };
+    }
+    (Object.defineProperty(_e, '__esModule', { value: !0 }),
+      (_e.MetricChart = function ({ values: t, height: u = 88, color: h = '#38bdf8', max: f }) {
+        const [c, x] = (0, e.useState)(0),
+          j = t.filter((t) => null !== t),
+          p = f ?? Math.max(...j, 1),
+          { line: y, area: $ } = (() => {
+            if (0 === j.length || 0 === c) return { line: '', area: '' };
+            const t = j.length > 1 ? c / (j.length - 1) : c,
+              e = `M${j
+                .map((e, n) => {
+                  const l = n * t,
+                    o = u - Math.min(1, e / p) * (u - 4) - 2;
+                  return `${l.toFixed(1)},${o.toFixed(1)}`;
+                })
+                .join(' L')}`;
+            return { line: e, area: `${e} L${c.toFixed(1)},${u} L0,${u} Z` };
+          })();
+        return (0, s.jsx)(n.default, {
+          onLayout: (t) => {
+            x(t.nativeEvent.layout.width);
+          },
+          style: { height: u },
+          children: y
+            ? (0, s.jsxs)(o.default, {
+                width: c,
+                height: u,
+                children: [
+                  (0, s.jsx)(l.Defs, {
+                    children: (0, s.jsxs)(l.LinearGradient, {
+                      id: 'fill',
+                      x1: '0',
+                      y1: '0',
+                      x2: '0',
+                      y2: '1',
+                      children: [
+                        (0, s.jsx)(l.Stop, { offset: '0', stopColor: h, stopOpacity: 0.35 }),
+                        (0, s.jsx)(l.Stop, { offset: '1', stopColor: h, stopOpacity: 0 }),
+                      ],
+                    }),
+                  }),
+                  (0, s.jsx)(l.Path, { d: $, fill: 'url(#fill)' }),
+                  (0, s.jsx)(l.Path, {
+                    d: y,
+                    stroke: h,
+                    strokeWidth: 2,
+                    fill: 'none',
+                    strokeLinejoin: 'round',
+                  }),
+                ],
+              })
+            : null,
+        });
+      }));
+    var e = r(d[0]),
+      n = t(r(d[1])),
+      l = r(d[2]),
+      o = t(l),
+      s = r(d[3]);
+  },
+  851,
+  [12, 109, 845, 289],
+);
