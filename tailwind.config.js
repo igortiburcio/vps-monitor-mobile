@@ -2,6 +2,12 @@
 module.exports = {
   content: ['./app/**/*.{ts,tsx}', './src/**/*.{ts,tsx}'],
   presets: [require('nativewind/preset')],
+  /**
+   * 'class' em vez do padrão 'media': o runtime web do NativeWind observa o
+   * <head>, lê `--css-interop-darkMode` e chama Appearance.setColorScheme().
+   * Com 'media' esse caminho lança erro no react-native-web.
+   */
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
